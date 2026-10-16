@@ -25,199 +25,302 @@
   </div>
 </div>
 
-<script src="config.js"></script>
 <script>
-(() => {
-  const C = window.RIFQ_CONFIG;
-  const app = document.getElementById('app');
+// إظهار أي خطأ برمجي على الشاشة مباشرة بدلاً من التجمد
+window.onerror = function(msg, url, line) {
+  document.getElementById('app').innerHTML = `
+    <div class="card" style="border-color: #ee443a; background: rgba(238,68,58,0.1); text-align:center;">
+      <h3 style="color:#ee443a; margin-bottom:8px;">تنبيه فني</h3>
+      <p style="font-size:13px; color:var(--ink);">حدث خطأ أثناء التشغيل: <b>${msg}</b></p>
+      <small style="color:var(--muted);">في السطر: ${line}</small>
+    </div>
+  `;
+};
 
-  async function rpc(fn, args) {
-    const res = await fetch(C.SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': C.SUPABASE_KEY,
-        'Authorization': 'Bearer ' + C.SUPABASE_KEY
-      },
-      body: JSON.stringify(args || {})
-    });
-    const text = await res.text();
-    let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch(_) { data = text; }
-    if (!res.ok) throw new Error((data && data.message) || 'تعذر الاتصال بقاعدة البيانات');
-    return data;
-  }
+// بيانات الربط المباشرة مع Supabase
+const C = {
+  SUPABASE_URL: 'https://kitlxjjzbnofpcycmugr.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_XZocjAcIalUP7HO4ko6MmA_PmwcWTlq'
+};
 
-  document.getElementById('themeBtn').onclick = () => {
+const app = document.getElementById('app');
+
+// دالة التواصل مع Supabase
+async function rpc(fn, args) {
+  const res = await fetch(C.SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': C.SUPABASE_KEY,
+      'Authorization': 'Bearer ' + C.SUPABASE_KEY
+    },
+    body: JSON.stringify(args || {})
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch(_) { data = text; }
+  if (!res.ok) throw new Error((data && data.message) || 'تعذر الاتصال بقاعدة البيانات');
+  return data;
+}
+
+// زر الوضع الليلي/النهاري
+const themeBtn = document.getElementById('themeBtn');
+if (themeBtn) {
+  themeBtn.onclick = () => {
     const cur = document.documentElement.dataset.theme;
     const next = cur === 'light' ? 'dark' : 'light';
     document.documentElement.dataset.theme = next;
-    document.getElementById('themeBtn').textContent = next === 'light' ? '🌙' : '☀️';
+    themeBtn.textContent = next === 'light' ? '🌙' : '☀️';
   };
+}
 
-  function renderHome() {
-    app.innerHTML = `
-      <div class="card" style="text-align:center;">
-        <h3 style="margin-bottom:8px;">مرحباً بك</h3>
-        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:16px;">اختر صفة الدخول للمتابعة</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-          <button class="btn" onclick="renderTeacherGate()">👨‍🏫 الأستاذ</button>
-          <button class="btn ghost" onclick="renderParentGate()">👪 ولي التلميذ</button>
+// الشاشة الرئيسية
+function renderHome() {
+  app.innerHTML = `
+    <div class="card" style="text-align:center;">
+      <h3 style="margin-bottom:8px;">مرحباً بك</h3>
+      <p style="color:var(--muted); font-size:0.85rem; margin-bottom:16px;">اختر صفة الدخول للمتابعة</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button class="btn" onclick="renderTeacherGate()">👨‍🏫 الأستاذ</button>
+        <button class="btn ghost" onclick="renderParentGate()">👪 ولي التلميذ</button>
+      </div>
+    </div>
+  `;
+}
+
+// ---------------- واجهة الأستاذ ----------------
+window.renderTeacherGate = () => {
+  const pin = sessionStorage.getItem('rifq_pin');
+  if(pin) return loadTeacherBoard(pin);
+
+  app.innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:10px;">دخول الأستاذ</h3>
+      <label class="section-lbl">الرمز السري</label>
+      <input type="password" id="pinInput" placeholder="أدخل الرمز (الافتراضي 1234)">
+      <button class="btn" id="loginBtn">دخول</button>
+      <button class="btn ghost" style="margin-top:8px;" onclick="renderHome()">رجوع</button>
+    </div>
+  `;
+  document.getElementById('loginBtn').onclick = () => {
+    const p = document.getElementById('pinInput').value.trim();
+    if(!p) return alert('أدخل الرمز');
+    loadTeacherBoard(p);
+  };
+};
+
+async function loadTeacherBoard(pin) {
+  app.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted);">جاري جلب القائمة...</div>`;
+  try {
+    const students = await rpc('teacher_get_students', { p_pin: pin });
+    sessionStorage.setItem('rifq_pin', pin);
+    renderTeacherApp(pin, students);
+  } catch(err) {
+    alert(err.message);
+    sessionStorage.removeItem('rifq_pin');
+    renderTeacherGate();
+  }
+}
+
+function renderTeacherApp(pin, students) {
+  const today = new Date().toISOString().slice(0, 10);
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span style="font-weight:800; color:var(--accent);">القسم (${students.length} تلميذ)</span>
+      <button class="btn ghost" style="width:auto; padding:4px 10px; font-size:12px;" onclick="sessionStorage.removeItem('rifq_pin'); renderHome();">خروج</button>
+    </div>
+
+    <div class="card" style="border-color:var(--field-line);">
+      <span class="section-lbl">➕ تلميذ جديد</span>
+      <input type="text" id="newName" placeholder="اسم التلميذ" style="margin-bottom:6px;">
+      <input type="text" id="newPhone" placeholder="هاتف الولي للواتساب (اختياري)" style="margin-bottom:8px;">
+      <button class="btn" style="padding:8px;" onclick="addStudent('${pin}')">تسجيل التلميذ</button>
+    </div>
+
+    <div class="card" style="padding:10px 14px;">
+      <span class="section-lbl">تاريخ حصة اليوم</span>
+      <input type="date" id="sessDate" value="${today}" style="margin:4px 0 0;">
+    </div>
+  `;
+
+  students.forEach(s => {
+    html += `
+      <div class="student-card" data-id="${s.id}" data-name="${s.name}" data-phone="${s.phone}">
+        <div class="student-head">
+          <span class="student-name">${s.name}</span>
+          <span class="score-badge">${s.total_score} نقطة</span>
+        </div>
+
+        <div class="section-lbl">الاستظهار:</div>
+        <div class="pill-grid rec-pills">
+          <button type="button" class="pill" data-val="استظهر بحفظ ممتاز" data-score="3" onclick="selectPill(this, 'rec', 'sel-rec-3')">ممتاز (+3)</button>
+          <button type="button" class="pill" data-val="استظهر" data-score="1" onclick="selectPill(this, 'rec', 'sel-rec-1')">استظهر (+1)</button>
+          <button type="button" class="pill" data-val="لم يستظهر" data-score="0" onclick="selectPill(this, 'rec', 'sel-rec-0')">لم يستظهر (0)</button>
+          <button type="button" class="pill" data-val="غائب" data-score="" onclick="selectPill(this, 'rec', 'sel-rec-absent')">غائب</button>
+        </div>
+
+        <div class="section-lbl">السلوك:</div>
+        <div class="pill-grid beh-pills">
+          <button type="button" class="pill" data-val="جيد" onclick="selectPill(this, 'beh', 'sel-beh-good')">جيد</button>
+          <button type="button" class="pill" data-val="حسن" onclick="selectPill(this, 'beh', 'sel-beh-ok')">حسن</button>
+          <button type="button" class="pill" data-val="متوسط" onclick="selectPill(this, 'beh', 'sel-beh-mid')">متوسط</button>
+        </div>
+
+        <input type="text" class="st-note" placeholder="ملاحظة خاصة (اختياري)" style="margin-bottom:6px; font-size:13px; padding:8px 10px;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:var(--muted);">الرمز: <b>${s.code}</b></span>
+          <button type="button" class="btn whatsapp" onclick="sendWhatsapp('${s.name}', '${s.phone}', this)">واتساب 💬</button>
         </div>
       </div>
     `;
-  }
+  });
 
-  window.renderTeacherGate = () => {
-    const pin = sessionStorage.getItem('rifq_pin');
-    if(pin) return loadTeacherBoard(pin);
+  html += `
+    <div style="position:sticky; bottom:12px; margin-top:14px;">
+      <button class="btn" onclick="saveSession('${pin}')">💾 اعتماد وحفظ نتائج اليوم</button>
+    </div>
+  `;
 
-    app.innerHTML = `
-      <div class="card">
-        <h3 style="margin-bottom:10px;">دخول الأستاذ</h3>
-        <label class="section-lbl">الرمز السري</label>
-        <input type="password" id="pinInput" placeholder="أدخل الرمز (الافتراضي 1234)">
-        <button class="btn" id="loginBtn">دخول</button>
-        <button class="btn ghost" style="margin-top:8px;" onclick="renderHome()">رجوع</button>
-      </div>
-    `;
-    document.getElementById('loginBtn').onclick = () => {
-      const p = document.getElementById('pinInput').value.trim();
-      if(!p) return alert('أدخل الرمز');
-      loadTeacherBoard(p);
-    };
-  };
+  app.innerHTML = html;
+}
 
-  async function loadTeacherBoard(pin) {
-    app.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted);">جاري جلب القائمة...</div>`;
-    try {
-      const students = await rpc('teacher_get_students', { p_pin: pin });
-      sessionStorage.setItem('rifq_pin', pin);
-      renderTeacherApp(pin, students);
-    } catch(err) {
-      alert(err.message);
-      sessionStorage.removeItem('rifq_pin');
-      renderTeacherGate();
+window.selectPill = (btn, group, activeCls) => {
+  Array.from(btn.parentElement.children).forEach(c => c.className = 'pill');
+  btn.className = 'pill ' + activeCls;
+};
+
+window.addStudent = async (pin) => {
+  const name = document.getElementById('newName').value.trim();
+  const phone = document.getElementById('newPhone').value.trim();
+  if(!name) return alert('اكتب اسم التلميذ');
+
+  try {
+    const res = await rpc('teacher_add_student', { p_pin: pin, p_name: name, p_phone: phone });
+    alert('تمت إضافة ' + res.name + ' بكود: ' + res.code);
+    loadTeacherBoard(pin);
+  } catch(e) { alert(e.message); }
+};
+
+window.sendWhatsapp = (name, phone, btn) => {
+  const card = btn.closest('.student-card');
+  const rec = card.querySelector('.rec-pills .pill[class*="sel-"]');
+  const beh = card.querySelector('.beh-pills .pill[class*="sel-"]');
+  const note = card.querySelector('.st-note').value.trim();
+
+  const text = `السلام عليكم ورحمة الله،\nتقرير حصة القرآن الكريم للتلميذ (${name}):\n\n`
+             + `📖 الاستظهار: ${rec ? rec.dataset.val : 'تم التقييم'}\n`
+             + `⭐ السلوك: ${beh ? beh.dataset.val : 'حسن'}\n`
+             + (note ? `📝 ملاحظة المعلّم: ${note}\n` : '')
+             + `\nوفقنا الله وإياكم لتربية أبنائنا على القرآن.`;
+
+  const clean = phone ? phone.replace(/[^0-9]/g, '') : '';
+  window.open('https://wa.me/' + clean + '?text=' + encodeURIComponent(text), '_blank');
+};
+
+window.saveSession = async (pin) => {
+  const date = document.getElementById('sessDate').value;
+  const cards = document.querySelectorAll('.student-card');
+  const records = [];
+
+  cards.forEach(c => {
+    const rec = c.querySelector('.rec-pills .pill[class*="sel-"]');
+    const beh = c.querySelector('.beh-pills .pill[class*="sel-"]');
+    const note = c.querySelector('.st-note').value.trim();
+
+    if(rec || beh) {
+      records.push({
+        student_id: c.dataset.id,
+        status: rec ? rec.dataset.val : 'لم يُحدد',
+        score: rec ? rec.dataset.score : null,
+        behavior: beh ? beh.dataset.val : 'حسن',
+        note: note
+      });
     }
-  }
+  });
 
-  function renderTeacherApp(pin, students) {
-    const today = new Date().toISOString().slice(0, 10);
-    let html = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <span style="font-weight:800; color:var(--accent);">القسم (${students.length} تلميذ)</span>
-        <button class="btn ghost" style="width:auto; padding:4px 10px; font-size:12px;" onclick="sessionStorage.removeItem('rifq_pin'); renderHome();">خروج</button>
+  if(records.length === 0) return alert('قيّم تلميذاً واحداً على الأقل');
+
+  try {
+    const count = await rpc('teacher_save_session', { p_pin: pin, p_date: date, p_records: records });
+    alert('تم حفظ نتائج ' + count + ' تلميذ بنجاح!');
+    loadTeacherBoard(pin);
+  } catch(e) { alert(e.message); }
+};
+
+// ---------------- واجهة الولي ----------------
+window.renderParentGate = (prefillCode) => {
+  const code = prefillCode || localStorage.getItem('rifq_code') || '';
+  app.innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:6px;">متابعة التلميذ</h3>
+      <p style="color:var(--muted); font-size:0.8rem; margin-bottom:12px;">أدخل رمز المتابعة المسلّم من الأستاذ</p>
+      <input type="text" id="parentCode" value="${code}" placeholder="مثال: A1B2C3" style="text-transform:uppercase;">
+      <button class="btn" id="showHistoryBtn">عرض السجل</button>
+      <button class="btn ghost" style="margin-top:8px;" onclick="renderHome()">رجوع</button>
+    </div>
+  `;
+  const load = async () => {
+    const c = document.getElementById('parentCode').value.trim().toUpperCase();
+    if(!c) return alert('أدخل الرمز');
+    app.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted);">جاري جلب السجل القرآني...</div>`;
+    try {
+      const data = await rpc('parent_get_history', { p_code: c });
+      localStorage.setItem('rifq_code', c);
+      renderParentView(data);
+    } catch(e) {
+      alert(e.message);
+      renderParentGate(c);
+    }
+  };
+  document.getElementById('showHistoryBtn').onclick = load;
+  if(prefillCode) load();
+};
+
+function renderParentView(data) {
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <button class="btn ghost" style="width:auto; padding:4px 10px; font-size:12px;" onclick="renderParentGate()">تغيير الرمز</button>
+      <span style="font-size:12px; color:var(--muted);">ملف التلميذ</span>
+    </div>
+
+    <div class="card" style="background:linear-gradient(135deg, rgba(25,227,166,0.15), rgba(9,138,101,0.2));">
+      <div style="font-size:12px; color:var(--muted);">التلميذ الحافظ</div>
+      <h2 style="font-size:1.4rem; color:var(--accent); margin:4px 0;">${data.name}</h2>
+      <div style="font-size:12px; margin-top:6px;">
+        مجموع النقاط: <b style="color:var(--gold); font-size:1rem;">${data.total_score}</b> نقطة
       </div>
+    </div>
 
-      <div class="card" style="border-color:var(--field-line);">
-        <span class="section-lbl">➕ تلميذ جديد</span>
-        <input type="text" id="newName" placeholder="اسم التلميذ" style="margin-bottom:6px;">
-        <input type="text" id="newPhone" placeholder="هاتف الولي للواتساب (اختياري)" style="margin-bottom:8px;">
-        <button class="btn" style="padding:8px;" onclick="addStudent('${pin}')">تسجيل التلميذ</button>
-      </div>
+    <h4 style="margin:14px 4px 8px; color:var(--ink2);">سجل الحصص السابقة (${data.history.length})</h4>
+  `;
 
-      <div class="card" style="padding:10px 14px;">
-        <span class="section-lbl">تاريخ حصة اليوم</span>
-        <input type="date" id="sessDate" value="${today}" style="margin:4px 0 0;">
-      </div>
-    `;
-
-    students.forEach(s => {
+  if(data.history.length === 0) {
+    html += `<div class="card" style="text-align:center; color:var(--muted);">لا توجد حصص مسجلة بعد.</div>`;
+  } else {
+    data.history.forEach(h => {
       html += `
-        <div class="student-card" data-id="${s.id}" data-name="${s.name}" data-phone="${s.phone}">
-          <div class="student-head">
-            <span class="student-name">${s.name}</span>
-            <span class="score-badge">${s.total_score} نقطة</span>
+        <div class="history-item">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:var(--muted); font-size:11px;">📅 ${h.date}</span>
+            <strong style="color:var(--accent);">${h.status}</strong>
           </div>
-
-          <div class="section-lbl">الاستظهار:</div>
-          <div class="pill-grid rec-pills">
-            <button type="button" class="pill" data-val="استظهر بحفظ ممتاز" data-score="3" onclick="selectPill(this, 'rec', 'sel-rec-3')">ممتاز (+3)</button>
-            <button type="button" class="pill" data-val="استظهر" data-score="1" onclick="selectPill(this, 'rec', 'sel-rec-1')">استظهر (+1)</button>
-            <button type="button" class="pill" data-val="لم يستظهر" data-score="0" onclick="selectPill(this, 'rec', 'sel-rec-0')">لم يستظهر (0)</button>
-            <button type="button" class="pill" data-val="غائب" data-score="" onclick="selectPill(this, 'rec', 'sel-rec-absent')">غائب</button>
-          </div>
-
-          <div class="section-lbl">السلوك:</div>
-          <div class="pill-grid beh-pills">
-            <button type="button" class="pill" data-val="جيد" onclick="selectPill(this, 'beh', 'sel-beh-good')">جيد</button>
-            <button type="button" class="pill" data-val="حسن" onclick="selectPill(this, 'beh', 'sel-beh-ok')">حسن</button>
-            <button type="button" class="pill" data-val="متوسط" onclick="selectPill(this, 'beh', 'sel-beh-mid')">متوسط</button>
-          </div>
-
-          <input type="text" class="st-note" placeholder="ملاحظة خاصة (اختياري)" style="margin-bottom:6px; font-size:13px; padding:8px 10px;">
-          
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:11px; color:var(--muted);">الرمز: <b>${s.code}</b></span>
-            <button type="button" class="btn whatsapp" onclick="sendWhatsapp('${s.name}', '${s.phone}', this)">واتساب 💬</button>
+          <div style="font-size:12px;">
+            السلوك: <b>${h.behavior}</b>
+            ${h.note ? ` | ملاحظة: <i>${h.note}</i>` : ''}
           </div>
         </div>
       `;
     });
-
-    html += `
-      <div style="position:sticky; bottom:12px; margin-top:14px;">
-        <button class="btn" onclick="saveSession('${pin}')">💾 اعتماد وحفظ نتائج اليوم</button>
-      </div>
-    `;
-
-    app.innerHTML = html;
   }
 
-  window.selectPill = (btn, group, activeCls) => {
-    Array.from(btn.parentElement.children).forEach(c => c.className = 'pill');
-    btn.className = 'pill ' + activeCls;
-  };
+  app.innerHTML = html;
+}
 
-  window.addStudent = async (pin) => {
-    const name = document.getElementById('newName').value.trim();
-    const phone = document.getElementById('newPhone').value.trim();
-    if(!name) return alert('اكتب اسم التلميذ');
-
-    try {
-      const res = await rpc('teacher_add_student', { p_pin: pin, p_name: name, p_phone: phone });
-      alert('تمت إضافة ' + res.name + ' بكود: ' + res.code);
-      loadTeacherBoard(pin);
-    } catch(e) { alert(e.message); }
-  };
-
-  window.sendWhatsapp = (name, phone, btn) => {
-    const card = btn.closest('.student-card');
-    const rec = card.querySelector('.rec-pills .pill[class*="sel-"]');
-    const beh = card.querySelector('.beh-pills .pill[class*="sel-"]');
-    const note = card.querySelector('.st-note').value.trim();
-
-    const text = `السلام عليكم ورحمة الله،\nتقرير حصة القرآن الكريم للتلميذ (${name}):\n\n`
-               + `📖 الاستظهار: ${rec ? rec.dataset.val : 'تم التقييم'}\n`
-               + `⭐ السلوك: ${beh ? beh.dataset.val : 'حسن'}\n`
-               + (note ? `📝 ملاحظة المعلّم: ${note}\n` : '')
-               + `\nوفقنا الله وإياكم لتربية أبنائنا على القرآن.`;
-
-    const clean = phone ? phone.replace(/[^0-9]/g, '') : '';
-    window.open('https://wa.me/' + clean + '?text=' + encodeURIComponent(text), '_blank');
-  };
-
-  window.saveSession = async (pin) => {
-    const date = document.getElementById('sessDate').value;
-    const cards = document.querySelectorAll('.student-card');
-    const records = [];
-
-    cards.forEach(c => {
-      const rec = c.querySelector('.rec-pills .pill[class*="sel-"]');
-      const beh = c.querySelector('.beh-pills .pill[class*="sel-"]');
-      const note = c.querySelector('.st-note').value.trim();
-
-      if(rec || beh) {
-        records.push({
-          student_id: c.dataset.id,
-          status: rec ? rec.dataset.val : 'لم يُحدد',
-          score: rec ? rec.dataset.score : null,
-          behavior: beh ? beh.dataset.val : 'حسن',
-          note: note
-        });
-      }
-    });
-
-    if(records.length === 0) return alert('قيّم تلميذاً واحداً على الأقل');
-
-    try {
+// بدء التشغيل
+const urlParamCode = new URLSearchParams(window.location.search).get('code');
+if(urlParamCode) renderParentGate(urlParamCode);
+else renderHome();
+</script>
+</body>
+</html>
