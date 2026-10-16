@@ -1,414 +1,223 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>رِفْق — المدرسة القرآنية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --primary: #064E3B;
-      --primary-light: #0D7A5D;
-      --gold: #D97706;
-      --gold-bg: #FEF3C7;
-      --bg: #F8FAFC;
-      --card-bg: #FFFFFF;
-      --text-main: #0F172A;
-      --text-muted: #64748B;
-      --border: #E2E8F0;
-      --green: #10B981;
-      --red: #EF4444;
-      --radius: 16px;
-      --shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Tajawal', sans-serif; background-color: var(--bg); color: var(--text-main); line-height: 1.5; padding-bottom: 40px; }
-    
-    header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: 24px 20px 20px; text-align: center; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; box-shadow: 0 4px 20px rgba(6, 78, 59, 0.15); }
-    header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-    header p { font-size: 14px; opacity: 0.9; margin-top: 4px; font-weight: 500; }
-
-    .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
-    .card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 16px; }
-
-    .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 13px 20px; font-size: 15px; font-weight: 700; font-family: inherit; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s ease; gap: 8px; }
-    .btn:active { transform: scale(0.98); }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-outline { background: white; color: var(--primary); border: 2px solid var(--primary); }
-    .btn-whatsapp { background: #25D366; color: white; padding: 6px 12px; font-size: 13px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
-    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); padding: 8px 14px; font-size: 13px; border-radius: 10px; width: auto; }
-
-    input, textarea, select { width: 100%; padding: 12px 14px; font-family: inherit; font-size: 14px; border: 1.5px solid var(--border); border-radius: 10px; outline: none; margin-top: 6px; margin-bottom: 12px; transition: border-color 0.2s; }
-    input:focus, textarea:focus { border-color: var(--primary); }
-
-    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
-    .role-card { background: white; border: 2px solid var(--border); border-radius: 16px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
-    .role-card:active { border-color: var(--primary); background: #F0FDF4; }
-    .role-icon { font-size: 34px; margin-bottom: 8px; display: block; }
-
-    /* خيارات التقييم */
-    .student-item { background: white; border-radius: 14px; border: 1px solid var(--border); padding: 14px; margin-bottom: 12px; }
-    .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .student-name { font-weight: 700; font-size: 15px; color: var(--primary); }
-    
-    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-    .pill-btn { border: 1.5px solid var(--border); background: #F8FAFC; padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; font-family: inherit; transition: 0.15s; }
-    
-    .pill-btn.sel-rec-1 { background: #DCFCE7; border-color: var(--green); color: #065F46; }
-    .pill-btn.sel-rec-2 { background: #FEF3C7; border-color: var(--gold); color: #92400E; }
-    .pill-btn.sel-rec-3 { background: #FEE2E2; border-color: var(--red); color: #991B1B; }
-    .pill-btn.sel-rec-4 { background: #F1F5F9; border-color: #94A3B8; color: #475569; }
-
-    .pill-btn.sel-beh-1 { background: #EFF6FF; border-color: #3B82F6; color: #1E40AF; }
-    .pill-btn.sel-beh-2 { background: #F8FAFC; border-color: #64748B; color: #334155; }
-    .pill-btn.sel-beh-3 { background: #FFFBEB; border-color: #F59E0B; color: #B45309; }
-
-    .history-card { border-right: 4px solid var(--primary); padding: 12px 14px; background: white; border-radius: 8px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); margin-bottom: 10px; }
-    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: white; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .loader { text-align: center; padding: 30px; font-weight: 600; color: var(--text-muted); }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <h1>رِفْق</h1>
-  <p>المدرسة القرآنية ومتابعة الحفظ</p>
-</header>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>رِفْق</h1>
+      <small>متابعة حفظ واستظهار القرآن الكريم</small>
+    </div>
+    <button class="theme-toggle" id="themeBtn" title="تبديل المظهر">☀️</button>
+  </header>
 
-<div class="container" id="app">
-  <div class="loader">جاري تشغيل النظام...</div>
+  <div id="app">
+    <div style="text-align:center; padding:30px; color:var(--muted);">جاري تشغيل المنظومة...</div>
+  </div>
 </div>
 
+<script src="config.js"></script>
 <script>
-// ==================== ضع رابط الـ Web App الخاص بك هنا ====================
-var API_URL = "https://script.google.com/macros/s/AKfycbwciDqBqs8JS5HYCxjkyQwRIGULVwOPS1O8UVVDAQye5PpiioPLM2WKlfMZ9mBuylz3/exec";
+(() => {
+  const C = window.RIFQ_CONFIG;
+  const app = document.getElementById('app');
 
-var app = document.getElementById('app');
-
-// تعريف حالات الاستظهار والسلوك
-var REC_OPTIONS = [
-  { key: 'استظهر ممتاز', label: 'حفظ متقن (+3)', cls: 'sel-rec-1', score: 3 },
-  { key: 'استظهر', label: 'استظهر (+2)', cls: 'sel-rec-1', score: 2 },
-  { key: 'جزء منه', label: 'جزء فقط (+1)', cls: 'sel-rec-2', score: 1 },
-  { key: 'لم يستظهر', label: 'لم يستظهر (0)', cls: 'sel-rec-3', score: 0 },
-  { key: 'غائب', label: 'غائب', cls: 'sel-rec-4', score: 0 }
-];
-
-var BEH_OPTIONS = [
-  { key: 'قدوة ومتميز', label: '🌟 متميز', cls: 'sel-beh-1' },
-  { key: 'منضبط', label: '✓ منضبط', cls: 'sel-beh-2' },
-  { key: 'يحتاج متابعة', label: '⚠️ تنبيه', cls: 'sel-beh-3' }
-];
-
-function showToast(msg) {
-  var t = document.createElement('div');
-  t.className = 'toast';
-  t.innerText = msg;
-  document.body.appendChild(t);
-  setTimeout(function(){ t.remove(); }, 3000);
-}
-
-// واجهة البداية
-function renderHome() {
-  app.innerHTML = `
-    <div class="card" style="text-align: center;">
-      <h3 style="margin-bottom: 6px;">مرحباً بك</h3>
-      <p style="color: var(--text-muted); font-size: 14px;">اختر صفة الدخول للمتابعة</p>
-      <div class="role-grid">
-        <div class="role-card" onclick="renderTeacherLogin()">
-          <span class="role-icon">👨‍🏫</span>
-          <strong>المعلّم</strong>
-        </div>
-        <div class="role-card" onclick="renderParentLogin()">
-          <span class="role-icon">👪</span>
-          <strong>ولي التلميذ</strong>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// ----------------- واجهة المعلم -----------------
-function renderTeacherLogin() {
-  app.innerHTML = `
-    <div class="card">
-      <h3 style="margin-bottom: 12px;">تسجيل دخول المعلّم</h3>
-      <label style="font-size: 13px; font-weight: 600;">الرمز السري</label>
-      <input type="password" id="pinInput" placeholder="أدخل رمزك السري">
-      <button class="btn btn-primary" onclick="handleTeacherLogin()">دخول</button>
-      <button class="btn btn-ghost" style="margin-top: 10px;" onclick="renderHome()">رجوع</button>
-    </div>
-  `;
-}
-
-function handleTeacherLogin() {
-  var pin = document.getElementById('pinInput').value.trim();
-  if(!pin) return alert('يرجى إدخال الرمز');
-  app.innerHTML = '<div class="loader">جاري التحقق وجلب التلاميذ...</div>';
-
-  fetch(API_URL + '?action=getStudents&pin=' + encodeURIComponent(pin))
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      if(data.success) {
-        sessionStorage.setItem('rifq_pin', pin);
-        renderTeacherDashboard(pin, data.students);
-      } else {
-        alert(data.error);
-        renderTeacherLogin();
-      }
-    })
-    .catch(function(err){
-      alert('تعذر الاتصال بقاعدة البيانات');
-      renderTeacherLogin();
+  async function rpc(fn, args) {
+    const res = await fetch(C.SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': C.SUPABASE_KEY,
+        'Authorization': 'Bearer ' + C.SUPABASE_KEY
+      },
+      body: JSON.stringify(args || {})
     });
-}
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch(_) { data = text; }
+    if (!res.ok) throw new Error((data && data.message) || 'تعذر الاتصال بقاعدة البيانات');
+    return data;
+  }
 
-function renderTeacherDashboard(pin, students) {
-  var today = new Date().toISOString().slice(0, 10);
-  var html = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <strong style="color: var(--primary);">حصة اليوم (${students.length} تلميذ)</strong>
-      <button class="btn-ghost" onclick="renderHome()">خروج</button>
-    </div>
+  document.getElementById('themeBtn').onclick = () => {
+    const cur = document.documentElement.dataset.theme;
+    const next = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = next;
+    document.getElementById('themeBtn').textContent = next === 'light' ? '🌙' : '☀️';
+  };
 
-    <div class="card">
-      <label style="font-size: 12px; font-weight: 700;">تاريخ الحصة</label>
-      <input type="date" id="sessDate" value="${today}">
-      
-      <label style="font-size: 12px; font-weight: 700;">مقرر اليوم المشترك</label>
-      <input type="text" id="sessTopic" placeholder="مثال: سورة النبأ من 1 إلى 15">
-
-      <label style="font-size: 12px; font-weight: 700;">الواجب المنزلي للحصة القادمة</label>
-      <input type="text" id="sessHomework" placeholder="مثال: حفظ بقية السورة + مراجعة النازعات">
-    </div>
-
-    <div id="studentsList">
-  `;
-
-  students.forEach(function(s){
-    html += `
-      <div class="student-item" data-id="${s.id}" data-name="${s.name}" data-phone="${s.phone}">
-        <div class="student-header">
-          <span class="student-name">${s.name}</span>
-          <span style="font-size: 11px; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 6px;">رمز: ${s.code}</span>
-        </div>
-
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">الاستظهار:</div>
-        <div class="pill-group rec-group">
-          ${REC_OPTIONS.map(function(opt){
-            return `<button type="button" class="pill-btn" data-val="${opt.key}" data-score="${opt.score}" onclick="selectPill(this, 'rec')">${opt.label}</button>`;
-          }).join('')}
-        </div>
-
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">السلوك والانضباط:</div>
-        <div class="pill-group beh-group">
-          ${BEH_OPTIONS.map(function(opt){
-            return `<button type="button" class="pill-btn" data-val="${opt.key}" onclick="selectPill(this, 'beh')">${opt.label}</button>`;
-          }).join('')}
-        </div>
-
-        <input type="text" class="student-note" placeholder="ملاحظة خاصة بالتلميذ (اختياري)" style="margin-bottom: 6px; font-size: 13px;">
-        <div style="text-align: left;">
-          <button type="button" class="btn-whatsapp" onclick="sendWhatsapp('${s.name}', '${s.phone}', this)">واتساب التقرير 💬</button>
+  function renderHome() {
+    app.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <h3 style="margin-bottom:8px;">مرحباً بك</h3>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:16px;">اختر صفة الدخول للمتابعة</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <button class="btn" onclick="renderTeacherGate()">👨‍🏫 الأستاذ</button>
+          <button class="btn ghost" onclick="renderParentGate()">👪 ولي التلميذ</button>
         </div>
       </div>
     `;
-  });
-
-  html += `
-    </div>
-    <div style="position: sticky; bottom: 15px;">
-      <button class="btn btn-primary" style="box-shadow: 0 6px 20px rgba(6,78,59,0.3);" onclick="saveAllSessions('${pin}')">💾 اعتماد وحفظ نتائج الحصة</button>
-    </div>
-  `;
-
-  app.innerHTML = html;
-}
-
-function selectPill(btn, type) {
-  var parent = btn.parentElement;
-  Array.from(parent.children).forEach(function(c){ 
-    c.className = 'pill-btn';
-  });
-  if(type === 'rec') {
-    var opt = REC_OPTIONS.find(function(o){ return o.key === btn.dataset.val; });
-    btn.className = 'pill-btn ' + (opt ? opt.cls : '');
-  } else {
-    var opt = BEH_OPTIONS.find(function(o){ return o.key === btn.dataset.val; });
-    btn.className = 'pill-btn ' + (opt ? opt.cls : '');
   }
-}
 
-function sendWhatsapp(name, phone, btn) {
-  var card = btn.closest('.student-item');
-  var recBtn = card.querySelector('.rec-group .pill-btn[class*="sel-"]');
-  var behBtn = card.querySelector('.beh-group .pill-btn[class*="sel-"]');
-  var note = card.querySelector('.student-note').value.trim();
-  var topic = document.getElementById('sessTopic').value.trim();
-  var hw = document.getElementById('sessHomework').value.trim();
+  window.renderTeacherGate = () => {
+    const pin = sessionStorage.getItem('rifq_pin');
+    if(pin) return loadTeacherBoard(pin);
 
-  var recStatus = recBtn ? recBtn.dataset.val : 'تم التقييم';
-  var behStatus = behBtn ? behBtn.dataset.val : 'منضبط';
-
-  var text = `السلام عليكم ورحمة الله وبركاته،\nتقرير حصة القرآن الكريم لابنكم (${name}):\n\n`
-           + `📖 المقرر: ${topic || 'مقرر الحصة'}\n`
-           + `🎯 حالة الاستظهار: ${recStatus}\n`
-           + `⭐ السلوك العام: ${behStatus}\n`
-           + (note ? `📝 ملاحظة الأستاذ: ${note}\n` : '')
-           + (hw ? `📌 الواجب المنزلي: ${hw}\n` : '')
-           + `\nوفقنا الله وإياكم لتربية أبنائنا على القرآن.`;
-
-  var url = 'https://wa.me/' + (phone ? phone.replace(/[^0-9]/g, '') : '') + '?text=' + encodeURIComponent(text);
-  window.open(url, '_blank');
-}
-
-function saveAllSessions(pin) {
-  var date = document.getElementById('sessDate').value;
-  var topic = document.getElementById('sessTopic').value.trim();
-  var homework = document.getElementById('sessHomework').value.trim();
-
-  var cards = document.querySelectorAll('.student-item');
-  var records = [];
-
-  cards.forEach(function(c){
-    var sid = c.dataset.id;
-    var recBtn = c.querySelector('.rec-group .pill-btn[class*="sel-"]');
-    var behBtn = c.querySelector('.beh-group .pill-btn[class*="sel-"]');
-    var note = c.querySelector('.student-note').value.trim();
-
-    if(recBtn || behBtn) {
-      records.push({
-        student_id: sid,
-        status: recBtn ? recBtn.dataset.val : 'لم يُحدد',
-        score: recBtn ? recBtn.dataset.score : 0,
-        behavior: behBtn ? behBtn.dataset.val : 'منضبط',
-        note: note
-      });
-    }
-  });
-
-  if(records.length === 0) return alert('يرجى تقييم تلميذ واحد على الأقل قبل الحفظ');
-
-  showToast('جاري الحفظ في Google Sheet...');
-
-  fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({
-      pin: pin,
-      action: 'recordSession',
-      date: date,
-      topic: topic,
-      homework: homework,
-      records: records
-    })
-  })
-  .then(function(res){ return res.json(); })
-  .then(function(data){
-    if(data.success) {
-      alert('تم اعتماد وحفظ نتائج ' + data.count + ' تلميذ بنجاح!');
-      renderHome();
-    } else {
-      alert(data.error);
-    }
-  })
-  .catch(function(err){ alert('حدث خطأ أثناء الحفظ'); });
-}
-
-// ----------------- واجهة ولي الأمر -----------------
-function renderParentLogin(prefillCode) {
-  var saved = prefillCode || localStorage.getItem('rifq_student_code') || '';
-  app.innerHTML = `
-    <div class="card">
-      <h3 style="margin-bottom: 8px;">متابعة التلميذ</h3>
-      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">أدخل رمز المتابعة الخاص بابنك المسلم من طرف الأستاذ</p>
-      <input type="text" id="parentCodeInput" value="${saved}" placeholder="مثال: A1B2C3" style="text-transform: uppercase;">
-      <button class="btn btn-primary" onclick="handleParentLoad()">عرض السجل</button>
-      <button class="btn btn-ghost" style="margin-top: 10px;" onclick="renderHome()">رجوع</button>
-    </div>
-  `;
-  if(saved && !prefillCode) { handleParentLoad(); }
-}
-
-function handleParentLoad() {
-  var code = document.getElementById('parentCodeInput').value.trim().toUpperCase();
-  if(!code) return alert('يرجى إدخال الرمز');
-
-  app.innerHTML = '<div class="loader">جاري جلب سجل التلميذ...</div>';
-
-  fetch(API_URL + '?action=getParentData&code=' + encodeURIComponent(code))
-    .then(function(res){ return res.json(); })
-    .then(function(data){
-      if(data.success) {
-        localStorage.setItem('rifq_student_code', code);
-        renderParentView(data.student);
-      } else {
-        alert(data.error);
-        renderParentLogin(code);
-      }
-    })
-    .catch(function(){ alert('تعذر تحميل البيانات'); renderParentLogin(code); });
-}
-
-function renderParentView(student) {
-  var html = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <button class="btn-ghost" onclick="renderParentLogin()">تغيير الرمز</button>
-      <span style="font-size: 12px; color: var(--text-muted);">رِفْق للمتابعة القرآنية</span>
-    </div>
-
-    <div class="card" style="background: linear-gradient(135deg, #064E3B, #0D7A5D); color: white;">
-      <div style="font-size: 13px; opacity: 0.85;">الملف القرآني للتلميذ</div>
-      <h2 style="font-size: 22px; margin-top: 4px;">${student.name}</h2>
-      <div style="font-size: 12px; margin-top: 8px; background: rgba(255,255,255,0.15); display: inline-block; padding: 3px 10px; border-radius: 6px;">
-        عدد الحصص المسجلة: ${student.history.length}
+    app.innerHTML = `
+      <div class="card">
+        <h3 style="margin-bottom:10px;">دخول الأستاذ</h3>
+        <label class="section-lbl">الرمز السري</label>
+        <input type="password" id="pinInput" placeholder="أدخل الرمز (الافتراضي 1234)">
+        <button class="btn" id="loginBtn">دخول</button>
+        <button class="btn ghost" style="margin-top:8px;" onclick="renderHome()">رجوع</button>
       </div>
-    </div>
+    `;
+    document.getElementById('loginBtn').onclick = () => {
+      const p = document.getElementById('pinInput').value.trim();
+      if(!p) return alert('أدخل الرمز');
+      loadTeacherBoard(p);
+    };
+  };
 
-    <h4 style="margin: 16px 4px 10px; color: var(--primary);">سجل الحصص الأخيرة</h4>
-  `;
+  async function loadTeacherBoard(pin) {
+    app.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted);">جاري جلب القائمة...</div>`;
+    try {
+      const students = await rpc('teacher_get_students', { p_pin: pin });
+      sessionStorage.setItem('rifq_pin', pin);
+      renderTeacherApp(pin, students);
+    } catch(err) {
+      alert(err.message);
+      sessionStorage.removeItem('rifq_pin');
+      renderTeacherGate();
+    }
+  }
 
-  if(student.history.length === 0) {
-    html += '<div class="card" style="text-align: center; color: var(--text-muted);">لا توجد حصص مسجلة حتى الآن</div>';
-  } else {
-    student.history.forEach(function(h){
+  function renderTeacherApp(pin, students) {
+    const today = new Date().toISOString().slice(0, 10);
+    let html = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-weight:800; color:var(--accent);">القسم (${students.length} تلميذ)</span>
+        <button class="btn ghost" style="width:auto; padding:4px 10px; font-size:12px;" onclick="sessionStorage.removeItem('rifq_pin'); renderHome();">خروج</button>
+      </div>
+
+      <div class="card" style="border-color:var(--field-line);">
+        <span class="section-lbl">➕ تلميذ جديد</span>
+        <input type="text" id="newName" placeholder="اسم التلميذ" style="margin-bottom:6px;">
+        <input type="text" id="newPhone" placeholder="هاتف الولي للواتساب (اختياري)" style="margin-bottom:8px;">
+        <button class="btn" style="padding:8px;" onclick="addStudent('${pin}')">تسجيل التلميذ</button>
+      </div>
+
+      <div class="card" style="padding:10px 14px;">
+        <span class="section-lbl">تاريخ حصة اليوم</span>
+        <input type="date" id="sessDate" value="${today}" style="margin:4px 0 0;">
+      </div>
+    `;
+
+    students.forEach(s => {
       html += `
-        <div class="history-card">
-          <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">
-            <span>📅 ${h.date}</span>
-            <span style="font-weight: 700; color: var(--primary);">${h.status}</span>
+        <div class="student-card" data-id="${s.id}" data-name="${s.name}" data-phone="${s.phone}">
+          <div class="student-head">
+            <span class="student-name">${s.name}</span>
+            <span class="score-badge">${s.total_score} نقطة</span>
           </div>
-          ${h.topic ? `<div style="font-size: 14px; font-weight: 700; margin-bottom: 2px;">📖 المقرر: ${h.topic}</div>` : ''}
-          ${h.homework ? `<div style="font-size: 13px; color: #92400E; background: #FEF3C7; padding: 4px 8px; border-radius: 6px; margin: 4px 0;">📌 المطلوب للبيت: ${h.homework}</div>` : ''}
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-            <span>السلوك: <b>${h.behavior || 'منضبط'}</b></span>
-            ${h.note ? ` | ملاحظة الأستاذ: <i>${h.note}</i>` : ''}
+
+          <div class="section-lbl">الاستظهار:</div>
+          <div class="pill-grid rec-pills">
+            <button type="button" class="pill" data-val="استظهر بحفظ ممتاز" data-score="3" onclick="selectPill(this, 'rec', 'sel-rec-3')">ممتاز (+3)</button>
+            <button type="button" class="pill" data-val="استظهر" data-score="1" onclick="selectPill(this, 'rec', 'sel-rec-1')">استظهر (+1)</button>
+            <button type="button" class="pill" data-val="لم يستظهر" data-score="0" onclick="selectPill(this, 'rec', 'sel-rec-0')">لم يستظهر (0)</button>
+            <button type="button" class="pill" data-val="غائب" data-score="" onclick="selectPill(this, 'rec', 'sel-rec-absent')">غائب</button>
+          </div>
+
+          <div class="section-lbl">السلوك:</div>
+          <div class="pill-grid beh-pills">
+            <button type="button" class="pill" data-val="جيد" onclick="selectPill(this, 'beh', 'sel-beh-good')">جيد</button>
+            <button type="button" class="pill" data-val="حسن" onclick="selectPill(this, 'beh', 'sel-beh-ok')">حسن</button>
+            <button type="button" class="pill" data-val="متوسط" onclick="selectPill(this, 'beh', 'sel-beh-mid')">متوسط</button>
+          </div>
+
+          <input type="text" class="st-note" placeholder="ملاحظة خاصة (اختياري)" style="margin-bottom:6px; font-size:13px; padding:8px 10px;">
+          
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; color:var(--muted);">الرمز: <b>${s.code}</b></span>
+            <button type="button" class="btn whatsapp" onclick="sendWhatsapp('${s.name}', '${s.phone}', this)">واتساب 💬</button>
           </div>
         </div>
       `;
     });
+
+    html += `
+      <div style="position:sticky; bottom:12px; margin-top:14px;">
+        <button class="btn" onclick="saveSession('${pin}')">💾 اعتماد وحفظ نتائج اليوم</button>
+      </div>
+    `;
+
+    app.innerHTML = html;
   }
 
-  app.innerHTML = html;
-}
+  window.selectPill = (btn, group, activeCls) => {
+    Array.from(btn.parentElement.children).forEach(c => c.className = 'pill');
+    btn.className = 'pill ' + activeCls;
+  };
 
-// التحقق من وجود رمز في رابط الصفحة (?code=XXXX)
-(function init() {
-  var urlParams = new URLSearchParams(window.location.search);
-  var code = urlParams.get('code');
-  if(code) {
-    renderParentLogin(code);
-  } else {
-    renderHome();
-  }
-})();
-</script>
+  window.addStudent = async (pin) => {
+    const name = document.getElementById('newName').value.trim();
+    const phone = document.getElementById('newPhone').value.trim();
+    if(!name) return alert('اكتب اسم التلميذ');
 
-</body>
-</html>
+    try {
+      const res = await rpc('teacher_add_student', { p_pin: pin, p_name: name, p_phone: phone });
+      alert('تمت إضافة ' + res.name + ' بكود: ' + res.code);
+      loadTeacherBoard(pin);
+    } catch(e) { alert(e.message); }
+  };
+
+  window.sendWhatsapp = (name, phone, btn) => {
+    const card = btn.closest('.student-card');
+    const rec = card.querySelector('.rec-pills .pill[class*="sel-"]');
+    const beh = card.querySelector('.beh-pills .pill[class*="sel-"]');
+    const note = card.querySelector('.st-note').value.trim();
+
+    const text = `السلام عليكم ورحمة الله،\nتقرير حصة القرآن الكريم للتلميذ (${name}):\n\n`
+               + `📖 الاستظهار: ${rec ? rec.dataset.val : 'تم التقييم'}\n`
+               + `⭐ السلوك: ${beh ? beh.dataset.val : 'حسن'}\n`
+               + (note ? `📝 ملاحظة المعلّم: ${note}\n` : '')
+               + `\nوفقنا الله وإياكم لتربية أبنائنا على القرآن.`;
+
+    const clean = phone ? phone.replace(/[^0-9]/g, '') : '';
+    window.open('https://wa.me/' + clean + '?text=' + encodeURIComponent(text), '_blank');
+  };
+
+  window.saveSession = async (pin) => {
+    const date = document.getElementById('sessDate').value;
+    const cards = document.querySelectorAll('.student-card');
+    const records = [];
+
+    cards.forEach(c => {
+      const rec = c.querySelector('.rec-pills .pill[class*="sel-"]');
+      const beh = c.querySelector('.beh-pills .pill[class*="sel-"]');
+      const note = c.querySelector('.st-note').value.trim();
+
+      if(rec || beh) {
+        records.push({
+          student_id: c.dataset.id,
+          status: rec ? rec.dataset.val : 'لم يُحدد',
+          score: rec ? rec.dataset.score : null,
+          behavior: beh ? beh.dataset.val : 'حسن',
+          note: note
+        });
+      }
+    });
+
+    if(records.length === 0) return alert('قيّم تلميذاً واحداً على الأقل');
+
+    try {
