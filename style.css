@@ -1,0 +1,116 @@
+:root {
+  --bg: #071914;
+  --bg-card: rgba(14, 43, 36, 0.7);
+  --card-solid: #0c2720;
+  --card-line: rgba(255, 255, 255, 0.08);
+  --field: #0a1f1a;
+  --field-line: #1b493e;
+  --ink: #f1f8f5;
+  --ink2: #cbe3db;
+  --muted: #7da599;
+  --accent: #19e3a6;
+  --gold: #f7a64b;
+  --gold-ink: #2a1c15;
+  --red: #ee443a;
+  --radius: 18px;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --pattern: rgba(25, 227, 166, 0.04);
+  --font: 'Cairo', system-ui, sans-serif;
+}
+
+:root[data-theme="light"] {
+  --bg: #f8faf9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --card-solid: #ffffff;
+  --card-line: #e0ece7;
+  --field: #f0f6f4;
+  --field-line: #c6ddd5;
+  --ink: #08211a;
+  --ink2: #1e3f35;
+  --muted: #5e8277;
+  --accent: #0c9e75;
+  --gold: #d97706;
+  --gold-ink: #ffffff;
+  --pattern: rgba(12, 158, 117, 0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--ink);
+  direction: rtl;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+/* خلفية الزخرفة الهندسية */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: linear-gradient(180deg, var(--pattern) 0%, transparent 80%);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.2'%3E%3Cpath d='M36 14l6.4 15.6L58 36l-15.6 6.4L36 58l-6.4-15.6L14 36l15.6-6.4z'/%3E%3Cpath d='M25 25h22v22H25z' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='4'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 72px 72px repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.2'%3E%3Cpath d='M36 14l6.4 15.6L58 36l-15.6 6.4L36 58l-6.4-15.6L14 36l15.6-6.4z'/%3E%3Cpath d='M25 25h22v22H25z' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='4'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 72px 72px repeat;
+}
+
+.wrap { max-width: 580px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 4px; margin-bottom: 12px;
+}
+header h1 { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+header h1 small { display: block; font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+
+.theme-toggle {
+  background: var(--card-solid); border: 1px solid var(--card-line); color: var(--gold);
+  width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-size: 1.1rem;
+}
+
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 100%;
+  padding: 12px; font-weight: 800; border-radius: 12px; border: 0; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), #098a65); color: #042018;
+  font-family: inherit; font-size: 0.95rem; transition: transform 0.1s;
+}
+.btn:active { transform: scale(0.98); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--field-line); }
+.btn.whatsapp { background: #25D366; color: white; padding: 6px 12px; font-size: 12px; border-radius: 8px; width: auto; }
+
+input {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--field-line); border-radius: 12px;
+  background: var(--field); color: var(--ink); font-family: inherit; font-size: 0.95rem; outline: none; margin: 6px 0 12px;
+}
+input:focus { border-color: var(--accent); }
+
+.section-lbl { font-size: 0.75rem; font-weight: 800; color: var(--muted); margin-bottom: 4px; }
+.pill-grid { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.pill {
+  padding: 6px 10px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; cursor: pointer;
+  background: var(--field); border: 1.5px solid var(--field-line); color: var(--ink2); font-family: inherit;
+}
+.pill.sel-rec-3 { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.pill.sel-rec-1 { background: var(--accent); border-color: var(--accent); color: #042018; }
+.pill.sel-rec-0 { background: rgba(238, 68, 58, 0.15); border-color: var(--red); color: var(--red); }
+.pill.sel-rec-absent { background: rgba(255, 255, 255, 0.05); border-color: var(--muted); color: var(--muted); }
+
+.pill.sel-beh-good { background: rgba(25, 227, 166, 0.15); border-color: var(--accent); color: var(--accent); }
+.pill.sel-beh-ok { background: var(--field); border-color: var(--muted); }
+.pill.sel-beh-mid { background: rgba(247, 166, 75, 0.15); border-color: var(--gold); color: var(--gold); }
+
+.student-card { border-radius: 14px; border: 1px solid var(--card-line); padding: 12px; margin-bottom: 10px; background: var(--card-solid); }
+.student-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.student-name { font-weight: 800; font-size: 1rem; }
+.score-badge { font-size: 0.75rem; background: var(--gold); color: var(--gold-ink); padding: 2px 7px; border-radius: 6px; font-weight: 800; }
+
+.history-item { border-right: 3px solid var(--accent); padding: 8px 12px; margin-bottom: 8px; background: var(--field); border-radius: 8px; font-size: 0.85rem; }
