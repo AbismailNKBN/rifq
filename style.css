@@ -41,10 +41,9 @@ body {
   color: var(--ink);
   direction: rtl;
   min-height: 100vh;
-  padding-bottom: 50px;
+  padding-bottom: 60px;
 }
 
-/* خلفية الزخرفة الهندسية */
 body::before {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background: linear-gradient(180deg, var(--pattern) 0%, transparent 80%);
@@ -86,6 +85,7 @@ header h1 small { display: block; font-size: 0.75rem; color: var(--muted); font-
 .btn:active { transform: scale(0.98); }
 .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--field-line); }
 .btn.whatsapp { background: #25D366; color: white; padding: 6px 12px; font-size: 12px; border-radius: 8px; width: auto; }
+.btn.danger { background: rgba(238, 68, 58, 0.15); color: var(--red); border: 1.5px solid var(--red); }
 
 input {
   width: 100%; padding: 12px 14px; border: 1.5px solid var(--field-line); border-radius: 12px;
@@ -112,5 +112,23 @@ input:focus { border-color: var(--accent); }
 .student-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .student-name { font-weight: 800; font-size: 1rem; }
 .score-badge { font-size: 0.75rem; background: var(--gold); color: var(--gold-ink); padding: 2px 7px; border-radius: 6px; font-weight: 800; }
+.btn-edit { background: transparent; color: var(--muted); border: 1px solid var(--card-line); padding: 3px 8px; font-size: 11px; border-radius: 6px; cursor: pointer; }
 
 .history-item { border-right: 3px solid var(--accent); padding: 8px 12px; margin-bottom: 8px; background: var(--field); border-radius: 8px; font-size: 0.85rem; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px;
+}
+.modal-sheet {
+  background: var(--card-solid); border: 1px solid var(--card-line); border-radius: 20px;
+  width: 100%; max-width: 440px; padding: 20px; box-shadow: var(--shadow);
+}
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(50px);
+  background: var(--card-solid); color: var(--ink); border: 1px solid var(--accent);
+  padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700;
+  box-shadow: var(--shadow); opacity: 0; transition: 0.25s ease; z-index: 200; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.err { border-color: var(--red); color: var(--red); }
