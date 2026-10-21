@@ -9,7 +9,7 @@
 
   const S = {
     students: [], ov: {}, scale: { excellent: 3, recited: 1, not_recited: 0 },
-    day: R.todayLocal(), rows: {}, tab: 'day', busy: false,
+    day: R.todayLocal(), rows: {}, tab: 'day', busy: false, cfg: null,
   };
 
   // ---------------------------------------------------------------- أدوات
@@ -123,12 +123,15 @@
 
   // ---------------------------------------------------------------- تحميل البيانات
   async function loadStudents() {
-    const [st, ov, sc] = await Promise.all([
+    const [st, ov, sc, cf] = await Promise.all([
       sb.from('rifq_students').select('id,name,phone,code,monthly_goal').order('name'),
       sb.rpc('teacher_overview'),
       sb.from('rifq_scale').select('recitation,points'),
+      sb.from('rifq_config').select('key,value'),
     ]);
     for (const r of [st, ov, sc]) if (r.error) throw r.error;
+    if (cf.error) S.cfg = null;           // قاعدة قديمة: شغّل schema.sql المحدّث
+    else { S.cfg = {}; (cf.data || []).forEach(x => { S.cfg[x.key] = x.value; }); }
     S.students = st.data || [];
     S.ov = {}; (ov.data || []).forEach(o => { S.ov[o.student_id] = o; });
     (sc.data || []).forEach(x => { S.scale[x.recitation] = x.points; });
@@ -304,7 +307,11 @@
           <button class="btn ghost sm" data-act="edit" data-id="${st.id}">${icon('edit')} تعديل</button>
         </div></article>`;
     }).join('') || '<div class="empty">لا يوجد تلاميذ بعد. اضغط «إضافة تلميذ».</div>';
-    return `<button class="btn block" data-act="addsheet" style="margin-bottom:6px">${icon('plus')} إضافة تلميذ</button>
+    const lbOn = !!(S.cfg && S.cfg.leaderboard_enabled === 'on');
+    const lbCard = S.cfg ? `<div class="card" style="padding:14px 16px"><label class="sw"><input type="checkbox" id="lbToggle" ${lbOn ? 'checked' : ''}>
+        <span><b>لوحة الصدارة للأولياء</b><small>يرى كل ولي أسماء الأوائل (${esc(S.cfg.leaderboard_top || 5)}) ونقاطهم، وترتيب ابنه بين زملائه بأسماء مخفية.</small></span></label></div>`
+      : '<div class="card small muted">لتفعيل لوحة الصدارة شغّل ملف schema.sql المحدّث في Supabase.</div>';
+    return lbCard + `<button class="btn block" data-act="addsheet" style="margin-bottom:6px">${icon('plus')} إضافة تلميذ</button>
       <h3 class="sec">التلاميذ (${S.students.length})</h3>${items}`;
   }
 
@@ -452,7 +459,21 @@
     const r = S.rows[t.dataset.id]; if (!r) return;
     r[t.dataset.f] = t.value; refreshRowState(t.dataset.id);
   });
-  document.addEventListener('change', e => { if (e.target && e.target.id === 'day') changeDay(e.target.value); });
+  document.addEventListener('change', async e => {
+    const t = e.target; if (!t) return;
+    if (t.id === 'day') return changeDay(t.value);
+    if (t.id === 'lbToggle') {
+      const want = t.checked;
+      if (want) {
+        const ok = await confirmSheet('إظهار لوحة الصدارة', `سيرى كل الأولياء أسماء الأوائل (${S.cfg.leaderboard_top || 5}) ونقاطهم. تأكد أن أسماء التلاميذ في التطبيق أسماء أولى فقط، وأنك أخبرت الأولياء والتلاميذ بالفكرة.`, 'إظهار اللوحة', false);
+        if (!ok) { t.checked = false; return; }
+      }
+      const { error } = await sb.from('rifq_config').upsert({ key: 'leaderboard_enabled', value: want ? 'on' : 'off' }, { onConflict: 'key' });
+      if (error) { t.checked = !want; return fail(error); }
+      S.cfg.leaderboard_enabled = want ? 'on' : 'off';
+      toast(want ? 'أصبحت لوحة الصدارة ظاهرة للأولياء' : 'أُخفيت لوحة الصدارة', 'ok');
+    }
+  });
   window.addEventListener('beforeunload', e => { if (document.getElementById('rows') && counts().dirty > 0) { e.preventDefault(); e.returnValue = ''; } });
 
   // ---------------------------------------------------------------- البدء

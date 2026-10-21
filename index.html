@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>رِفْق — متابعة التلميذ</title>
 <meta name="theme-color" content="#07140f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <script>try{var t=localStorage.getItem('rifq_theme');if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='dark'}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
@@ -15,10 +17,12 @@
 <div class="wrap" id="root">
   <div class="top">
     <div class="brand"><span class="mark" id="mark"></span><h1>رِفْق<small>متابعة حفظ القرآن الكريم</small></h1></div>
+    <button class="iconbtn" id="refreshBtn" type="button" title="تحديث" aria-label="تحديث" hidden></button>
     <span id="themeSlot"></span>
   </div>
   <main id="app"><div class="spinner"></div></main>
 </div>
+<nav class="tabbar" id="nav" aria-label="التنقل" hidden><div class="bar-in" id="navIn"></div></nav>
 <noscript><p style="padding:20px;text-align:center">يحتاج هذا التطبيق إلى تفعيل JavaScript.</p></noscript>
 <script src="config.js"></script>
 <script src="common.js"></script>

@@ -86,7 +86,7 @@ body::before {
   background: linear-gradient(145deg, var(--hero), var(--bg)); border: 1px solid var(--gold-line); color: var(--gold); box-shadow: var(--shadow-sm); }
 .mark svg { width: 26px; height: 26px; }
 .brand h1 { font-size: 1.35rem; font-weight: 800; line-height: 1.5; color: var(--gold); }
-.brand small { display: block; font-size: .78rem; color: var(--muted); font-weight: 400; line-height: 1.3; margin-top: -3px; }
+.brand small { display: block; font-size: .78rem; color: var(--muted); font-weight: 400; line-height: 1.3; margin-top: 1px; }
 .iconbtn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card-solid);
   color: var(--gold); display: grid; place-items: center; cursor: pointer; box-shadow: var(--shadow-sm); flex: none; }
 .iconbtn:active { transform: scale(.94); }
@@ -258,3 +258,112 @@ input.ltr { direction: ltr; text-align: left; }
 .logo-big svg { width: 44px; height: 44px; }
 .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--field-line); border-top-color: var(--gold); margin: 34px auto 10px; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+
+/* =====================================================================
+   تطبيق الولي: شريط التنقل السفلي + الرئيسية + الصدارة + السجل
+   ===================================================================== */
+:root { --silver: #c5ced3; --bronze: #d08c5b; }
+:root[data-theme="light"] { --silver: #7f9096; --bronze: #b86f3b; }
+
+body.has-nav .wrap { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
+.tabbar { position: fixed; inset-inline: 0; bottom: 0; z-index: 40; display: flex; justify-content: center; pointer-events: none;
+  padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
+.tabbar .bar-in { pointer-events: auto; width: 100%; max-width: 560px; display: flex; gap: 4px; padding: 6px; border-radius: 24px;
+  background: color-mix(in srgb, var(--card-solid) 90%, transparent); border: 1px solid var(--line);
+  box-shadow: 0 -6px 30px rgba(0,0,0,.22), var(--shadow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.tabbar button { flex: 1; min-height: 56px; border: 0; background: none; cursor: pointer; padding: 8px 4px 6px; border-radius: 18px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-size: .75rem; font-weight: 700; color: var(--muted); transition: color .15s, background .2s; }
+.tabbar button svg { width: 23px; height: 23px; }
+.tabbar button:active { transform: scale(.96); }
+.tabbar button[aria-current=page] { color: var(--on-gold); background: var(--gold-grad); box-shadow: 0 6px 18px var(--glow); }
+.view { animation: viewin .28s ease both; }
+@keyframes viewin { from { opacity: 0; transform: translateY(8px); } }
+.iconbtn.spin svg { animation: spin .8s linear infinite; }
+
+/* ---- بطاقة التلميذ والرتبة ---- */
+.hero h2 { margin: 2px 0 2px; }
+.codeline { font-size: .78rem; color: var(--muted); font-weight: 700; margin-bottom: 14px; }
+.code-hint { font-family: ui-monospace, Menlo, Consolas, monospace; direction: ltr; letter-spacing: .08em; color: var(--ink2); }
+.tier { --tc: var(--gold); display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 10px; border-radius: 16px; width: 100%; margin-bottom: 18px;
+  color: var(--tc); border: 1px solid color-mix(in srgb, var(--tc) 55%, transparent); background: color-mix(in srgb, var(--tc) 13%, transparent); }
+.tier.t-silver { --tc: var(--silver); } .tier.t-bronze { --tc: var(--bronze); } .tier.t-seed { --tc: var(--emerald); }
+.tier .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--tc) 22%, transparent); }
+.tier .ic svg { width: 20px; height: 20px; }
+.tier b { display: block; font-size: .84rem; line-height: 1.3; }
+.tier small { display: block; font-size: .7rem; color: var(--muted); font-weight: 700; }
+
+.goalrow { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 9px; }
+.goalrow .lbl { font-size: .82rem; color: var(--muted); font-weight: 700; }
+.goalrow .big { font-size: 2.1rem; font-weight: 800; line-height: 1; direction: ltr; }
+.goalrow .big small { font-size: .95rem; color: var(--muted); font-weight: 700; }
+.goalrow .pct { font-size: 1.1rem; font-weight: 800; color: var(--gold); direction: ltr; }
+.hero .bar { width: 100%; height: 13px; }
+.motive { margin-top: 11px; font-size: .92rem; color: var(--ink2); font-weight: 700; }
+
+/* ---- مؤشرات الأداء ---- */
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.kpi { --kc: var(--gold); background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 13px 14px 11px; box-shadow: var(--shadow-sm); }
+.kpi .ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 8px; color: var(--kc);
+  background: color-mix(in srgb, var(--kc) 15%, transparent); }
+.kpi .ic svg { width: 19px; height: 19px; }
+.kpi b { display: block; font-size: 1.6rem; line-height: 1.15; font-weight: 800; direction: ltr; text-align: right; }
+.kpi small { font-size: .76rem; color: var(--muted); font-weight: 700; }
+.conduct { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin: -2px 2px 14px; font-size: .8rem; color: var(--muted); font-weight: 700; }
+
+/* ---- آخر ملاحظة ---- */
+.notecard { border-radius: 20px; padding: 15px 16px; margin-bottom: 14px; border: 1px solid var(--gold-line); box-shadow: var(--shadow-sm);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--gold) 13%, var(--card-solid)), var(--card-solid)); }
+.notecard .h { display: flex; align-items: center; gap: 8px; font-size: .8rem; font-weight: 800; color: var(--gold); margin-bottom: 7px; }
+.notecard .h time { margin-inline-start: auto; color: var(--muted); font-weight: 700; }
+.notecard p { font-size: 1.02rem; line-height: 1.75; font-weight: 700; }
+.notecard p.none { color: var(--muted); font-weight: 400; font-size: .9rem; }
+
+/* ---- لوحة الصدارة ---- */
+.lbhead { margin: 2px 4px 12px; }
+.lbhead h2 { font-size: 1.25rem; font-weight: 800; color: var(--gold); }
+.lbhead p { font-size: .8rem; color: var(--muted); }
+.lb { display: flex; flex-direction: column; gap: 8px; }
+.lbrow { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+.lbrow .rk { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .95rem; flex: none;
+  color: var(--ink2); background: var(--field); border: 1.5px solid var(--field-line); }
+.lbrow .nm { flex: 1; min-width: 0; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lbrow .pt { flex: none; font-weight: 800; direction: ltr; }
+.lbrow .pt small { font-size: .7rem; color: var(--muted); font-weight: 700; margin-inline-start: 3px; }
+.lbrow.r1 { padding: 13px 12px; border-color: var(--gold-line); background: linear-gradient(120deg, var(--gold-soft), var(--card)); }
+.lbrow.r1 .rk { width: 40px; height: 40px; font-size: 1.1rem; background: var(--gold-grad); color: var(--on-gold); border-color: transparent; box-shadow: 0 4px 14px var(--glow); }
+.lbrow.r1 .nm { font-size: 1.12rem; }
+.lbrow.r2 .rk { background: linear-gradient(135deg, color-mix(in srgb, var(--silver) 80%, #fff), var(--silver)); color: #0c1a1a; border-color: transparent; }
+.lbrow.r3 .rk { background: linear-gradient(135deg, color-mix(in srgb, var(--bronze) 80%, #fff), var(--bronze)); color: #230f02; border-color: transparent; }
+.lbrow.me { border: 2px solid var(--emerald); background: linear-gradient(120deg, color-mix(in srgb, var(--emerald) 17%, transparent), var(--card));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--emerald) 12%, transparent); }
+.lbrow .mine { color: var(--emerald); display: grid; place-items: center; flex: none; }
+.lbrow .mine svg { width: 21px; height: 21px; }
+.lbrow.mask .nm { filter: blur(6px); user-select: none; -webkit-user-select: none; pointer-events: none; color: var(--muted); letter-spacing: .12em; }
+.lbrow .cnt { font-size: .72rem; color: var(--muted); font-weight: 800; flex: none; }
+.lbsep { text-align: center; color: var(--muted); letter-spacing: .5em; font-weight: 800; line-height: 1; margin: 1px 0; }
+.lbmsg { margin-top: 14px; padding: 13px 14px; border-radius: 16px; font-weight: 800; font-size: .96rem; text-align: center; line-height: 1.6;
+  background: var(--gold-soft); border: 1px solid var(--gold-line); }
+.lbnote { margin-top: 10px; font-size: .75rem; color: var(--muted); text-align: center; line-height: 1.7; }
+
+/* ---- سجل الحصص (خط زمني) ---- */
+.tl { position: relative; padding-inline-start: 26px; }
+.tl::before { content: ''; position: absolute; inset-block: 8px; inset-inline-start: 7px; width: 2px; border-radius: 2px; background: var(--line); }
+.tli { --dc: var(--field-line); position: relative; margin-bottom: 10px; }
+.tli::before { content: ''; position: absolute; inset-inline-start: -26px; top: 15px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--dc); border: 3px solid var(--bg); box-shadow: 0 0 0 1.5px var(--dc); }
+.tli.excellent { --dc: var(--emerald); } .tli.recited { --dc: var(--gold); }
+.tli.not_recited { --dc: var(--orange); } .tli.absent { --dc: var(--slate); }
+.tli .item { margin: 0; border-inline-start-width: 1px; border-inline-start-color: var(--line); }
+
+/* ---- مفتاح التشغيل (لوحة الأستاذ) ---- */
+.sw { display: flex; align-items: center; gap: 13px; cursor: pointer; }
+.sw input { appearance: none; -webkit-appearance: none; flex: none; width: 52px; height: 30px; margin: 0; padding: 0; border: 0; border-radius: 30px;
+  background: var(--field-line); position: relative; cursor: pointer; transition: background .2s; }
+.sw input::after { content: ''; position: absolute; top: 3px; inset-inline-start: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff;
+  transition: inset-inline-start .2s; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+.sw input:checked { background: var(--emerald); }
+.sw input:checked::after { inset-inline-start: 25px; }
+.sw b { display: block; }
+.sw small { display: block; color: var(--muted); font-size: .78rem; line-height: 1.6; font-weight: 400; }

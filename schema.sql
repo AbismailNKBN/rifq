@@ -74,6 +74,18 @@ insert into rifq_scale (recitation, points) values
   ('excellent', 3), ('recited', 1), ('not_recited', 0)
 on conflict (recitation) do nothing;
 
+-- إعدادات عامة يتحكم بها الأستاذ (لوحة الصدارة للأولياء: مطفأة افتراضياً)
+create table if not exists rifq_config (
+  key   text primary key,
+  value text not null,
+  check (
+    (key = 'leaderboard_enabled' and value in ('on', 'off'))
+    or (key = 'leaderboard_top' and case when value ~ '^[0-9]{1,2}$' then value::int between 1 and 20 else false end)
+  )
+);
+insert into rifq_config (key, value) values ('leaderboard_enabled', 'off'), ('leaderboard_top', '5')
+on conflict (key) do nothing;
+
 -- recitation: excellent=استظهر بحفظ ممتاز · recited=استظهر · not_recited=لم يستظهر · absent=غائب
 -- behavior:   good=جيد · fine=حسن · average=متوسط
 create table if not exists rifq_sessions (
@@ -159,8 +171,9 @@ alter table rifq_students    enable row level security;
 alter table rifq_sessions    enable row level security;
 alter table rifq_scale       enable row level security;
 alter table rifq_session_log enable row level security;
+alter table rifq_config      enable row level security;
 
-revoke all on rifq_teacher, rifq_students, rifq_sessions, rifq_scale, rifq_session_log
+revoke all on rifq_teacher, rifq_students, rifq_sessions, rifq_scale, rifq_session_log, rifq_config
   from public, anon, authenticated;
 
 do $lock$
@@ -174,6 +187,7 @@ end $lock$;
 grant select, insert, update, delete on rifq_students, rifq_sessions to authenticated;
 grant select, update                 on rifq_scale                    to authenticated;
 grant select                         on rifq_session_log              to authenticated;
+grant select, insert, update          on rifq_config                   to authenticated;
 
 drop policy if exists teacher_all on rifq_students;
 create policy teacher_all on rifq_students for all to authenticated
@@ -185,6 +199,10 @@ create policy teacher_all on rifq_sessions for all to authenticated
 
 drop policy if exists teacher_all on rifq_scale;
 create policy teacher_all on rifq_scale for all to authenticated
+  using ((select rifq_is_teacher())) with check ((select rifq_is_teacher()));
+
+drop policy if exists teacher_all on rifq_config;
+create policy teacher_all on rifq_config for all to authenticated
   using ((select rifq_is_teacher())) with check ((select rifq_is_teacher()));
 
 drop policy if exists teacher_read on rifq_session_log;
@@ -234,6 +252,96 @@ begin
                       where s.student_id = v.id
                       order by s.session_date desc
                       limit 120) h)
+  );
+end $$;
+
+-- (أ-2) تطبيق الولي: كل ما تحتاجه الصفحات الثلاث في استدعاء واحد.
+--  • الولي يرى ابنه فقط. لوحة الصدارة: أسماء الأوائل علناً، أما المجاورون لابنه
+--    فيُرسَل إليه ترتيبهم ونقاطهم دون أي اسم (الإخفاء من الخادم، لا بـ CSS).
+--  • لا يُرسَل الرمز الكامل ولا الهاتف ولا الملاحظات الخاصة.
+create or replace function parent_get_app(p_code text) returns json
+language plpgsql stable security definer set search_path = public
+as $$
+declare
+  v         rifq_students%rowtype;
+  v_code    text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
+  v_start   date := date_trunc('month', now() at time zone 'Africa/Algiers')::date;
+  v_end     date := (date_trunc('month', now() at time zone 'Africa/Algiers') + interval '1 month')::date;
+  v_enabled boolean := coalesce((select value from rifq_config where key = 'leaderboard_enabled'), 'off') = 'on';
+  v_top     int := coalesce((select value::int from rifq_config where key = 'leaderboard_top'), 5);
+  v_stats   json;
+  v_lb      json := json_build_object('enabled', false);
+begin
+  if char_length(v_code) < 6 then
+    raise exception 'رمز المتابعة غير صحيح';
+  end if;
+  select * into v from rifq_students where code = v_code;
+  if not found then
+    raise exception 'رمز المتابعة غير صحيح';
+  end if;
+
+  select json_build_object(
+    'name', v.name,
+    'code_hint', right(v.code, 4),
+    'monthly_goal', v.monthly_goal,
+    'month_start', v_start,
+    'month_points', coalesce(sum(sc.points) filter (where s.session_date >= v_start and s.session_date < v_end), 0),
+    'total_points', coalesce(sum(sc.points), 0),
+    'month_sessions', count(s.id) filter (where s.session_date >= v_start and s.session_date < v_end),
+    'total_sessions', count(s.id),
+    'mastery_pct', round(100.0 * count(s.id) filter (where s.recitation = 'excellent')
+                         / nullif(count(s.id) filter (where s.recitation in ('excellent', 'recited', 'not_recited')), 0)),
+    'attendance_pct', round(100.0 * count(s.id) filter (where s.recitation is distinct from 'absent')
+                            / nullif(count(s.id), 0)),
+    'conduct', json_build_object(
+        'good',    count(s.id) filter (where s.behavior = 'good'    and s.session_date >= v_start and s.session_date < v_end),
+        'fine',    count(s.id) filter (where s.behavior = 'fine'    and s.session_date >= v_start and s.session_date < v_end),
+        'average', count(s.id) filter (where s.behavior = 'average' and s.session_date >= v_start and s.session_date < v_end))
+  ) into v_stats
+  from rifq_sessions s left join rifq_scale sc on sc.recitation = s.recitation
+  where s.student_id = v.id;
+
+  if v_enabled then
+    with pts as (
+      select st.id, st.name,
+             coalesce(sum(sc.points) filter (where s.session_date >= v_start and s.session_date < v_end), 0)::int as p
+      from rifq_students st
+      left join rifq_sessions s on s.student_id = st.id
+      left join rifq_scale sc on sc.recitation = s.recitation
+      group by st.id, st.name
+    ), ranked as (
+      select id, name, p, rank() over (order by p desc)::int as r from pts where p > 0
+    ), me as (
+      select r, p from ranked where id = v.id
+    ), above as (
+      select r, p, count(*)::int as n from ranked
+      where p = (select min(p) from ranked where p > (select p from me)) group by r, p
+    ), below as (
+      select r, p, count(*)::int as n from ranked
+      where p = (select max(p) from ranked where p < (select p from me)) group by r, p
+    )
+    select json_build_object(
+      'enabled', true,
+      'top_n', v_top,
+      'ranked', (select count(*) from ranked),
+      'me', (select json_build_object('rank', r, 'points', p) from me),
+      'top', coalesce((select json_agg(json_build_object('rank', r, 'name', name, 'points', p, 'is_me', id = v.id) order by r, name)
+                       from ranked where r <= v_top), '[]'::json),
+      'above', (select json_build_object('rank', r, 'points', p, 'count', n) from above),
+      'below', (select json_build_object('rank', r, 'points', p, 'count', n) from below)
+    ) into v_lb;
+  end if;
+
+  return json_build_object(
+    'student', v_stats,
+    'last_note', (select json_build_object('date', session_date, 'text', note)
+                  from rifq_sessions where student_id = v.id and btrim(note) <> ''
+                  order by session_date desc limit 1),
+    'history', (select coalesce(json_agg(h order by h.date desc), '[]'::json)
+                from (select s.session_date as date, s.recitation, s.behavior, sc.points, s.note
+                      from rifq_sessions s left join rifq_scale sc on sc.recitation = s.recitation
+                      where s.student_id = v.id order by s.session_date desc limit 120) h),
+    'leaderboard', v_lb
   );
 end $$;
 
@@ -287,11 +395,12 @@ end $$;
 -- 6) صلاحيات تنفيذ الدوال (صريحة، فتعمل مع النظام القديم والجديد في Supabase)
 -- ---------------------------------------------------------------------
 revoke all on function rifq_gen_code(), rifq_is_teacher(), rifq_session_audit(),
-                       parent_get_history(text), teacher_overview(), rifq_ping(),
+                       parent_get_history(text), parent_get_app(text), teacher_overview(), rifq_ping(),
                        rifq_register_teacher(text)
   from public, anon, authenticated;
 
 grant execute on function parent_get_history(text) to anon, authenticated;
+grant execute on function parent_get_app(text)     to anon, authenticated;
 grant execute on function rifq_ping()              to anon, authenticated;
 grant execute on function rifq_gen_code()          to authenticated;
 grant execute on function rifq_is_teacher()        to authenticated;
